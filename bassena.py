@@ -41,13 +41,13 @@ def calculate_row(kostenstelle):
             elif row[16] == '20':
                 artikel_20.append(float(row[22].replace(',', '.')))
 
-            cost.append (float(row[3]) * float(row[9].replace(',', '.')))
+            cost.append(float(row[3]) * float(row[9].replace(',', '.')))
 
     total = round(sum(artikel_0) + sum(artikel_5) + sum(artikel_10) + sum(artikel_13) + sum(artikel_20), 2)
     total_cost = round(sum(cost), 2)
     deckung = round(total - total_cost, 2)
     prozent = round((deckung / total) * 100, 2)
-    
+
     total_str = str(total)
     artikel_0_strg = str(round(sum(artikel_0), 2))
     artikel_5_strg = str(round(sum(artikel_5), 2))
@@ -57,11 +57,14 @@ def calculate_row(kostenstelle):
     total_cost_str = str(total_cost)
     deckung_str = str(deckung)
     prozent_str = str(prozent)
-    
-    artikel = [kostenstelle, total_str.replace('.', ','), artikel_0_strg.replace('.', ','), artikel_5_strg.replace('.', ','),
-                    artikel_10_strg.replace('.', ','), artikel_13_strg.replace('.', ','), artikel_20_strg.replace('.', ','), total_cost_str.replace('.', ','), deckung_str.replace('.', ','), prozent_str.replace('.', ',')]
+
+    artikel = [kostenstelle, total_str.replace('.', ','), artikel_0_strg.replace('.', ','),
+               artikel_5_strg.replace('.', ','), artikel_10_strg.replace('.', ','), artikel_13_strg.replace('.', ','),
+               artikel_20_strg.replace('.', ','), total_cost_str.replace('.', ','), deckung_str.replace('.', ','),
+               prozent_str.replace('.', ',')]
 
     final_table.append(artikel)
+
 
 bassenaoriginal = read_original_csv(sys.argv[1])
 
