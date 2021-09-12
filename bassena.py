@@ -1,6 +1,7 @@
 import csv
 import re
 import sys
+import datetime
 
 
 def read_original_csv(filename):
@@ -30,18 +31,23 @@ def calculate_row(kostenstelle):
     for row in bassenaoriginal:
         matchobject = re.search(kostenstelle, row[27])
         if matchobject:
-            if row[16] == '0':
-                artikel_0.append(float(row[22].replace(',', '.')))
-            elif row[16] == '5':
-                artikel_5.append(float(row[22].replace(',', '.')))
-            elif row[16] == '10':
-                artikel_10.append(float(row[22].replace(',', '.')))
-            elif row[16] == '13':
-                artikel_13.append(float(row[22].replace(',', '.')))
-            elif row[16] == '20':
-                artikel_20.append(float(row[22].replace(',', '.')))
+            try:
+                if row[16] == '0':
+                    artikel_0.append(float(row[22].replace(',', '.')))
+                elif row[16] == '5':
+                    artikel_5.append(float(row[22].replace(',', '.')))
+                elif row[16] == '10':
+                    artikel_10.append(float(row[22].replace(',', '.')))
+                elif row[16] == '13':
+                    artikel_13.append(float(row[22].replace(',', '.')))
+                elif row[16] == '20':
+                    artikel_20.append(float(row[22].replace(',', '.')))
 
-            cost.append(float(row[3]) * float(row[9].replace(',', '.')))
+                cost.append(float(row[3].replace(',', '.')) * float(row[9].replace(',', '.')))
+
+            except ValueError as e:
+                print("Problem in replace , and .")
+                print(row[1] + " " + row[2] + " " + row[22] + " " + row[3] + " " + row[9])
 
     total = round(sum(artikel_0) + sum(artikel_5) + sum(artikel_10) + sum(artikel_13) + sum(artikel_20), 2)
     total_cost = round(sum(cost), 2)
@@ -83,6 +89,9 @@ calculate_row('4309')
 calculate_row('4310')
 calculate_row('4400')
 
-new_csv = "final_" + sys.argv[1]
+today = datetime.datetime.now()
+date_time = today.strftime("%m%d%Y_%H%M%S")
+
+new_csv = "bassena_bericht_" + date_time + ".csv"
 
 write_csv(new_csv)
