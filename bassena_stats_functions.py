@@ -100,7 +100,7 @@ def calculate_articles_one_kind(article, original_list):
 
 
 # Print the graph of the statistic of number of articles of one kindsold in one day
-def print_graph(tup, artikel):
+def print_graph(tup, article):
     # x axis values
     x = tup[0]
     # corresponding y axis values
@@ -115,7 +115,7 @@ def print_graph(tup, artikel):
     plt.ylabel('Number of days')
 
     # giving a title to my graph
-    plt.title(artikel)
+    plt.title(article)
 
     # function to show the plot
     plt.show()
@@ -148,6 +148,13 @@ def print_graph2(money, days, time):
     # corresponding y axis values
     y = money
 
+    if len(money) != 0:
+        z = [round(statistics.mean(money), 2) for i in range(1, len(days) + 1)]
+        plt.plot(x, z)
+
+        w = [round(statistics.median(money), 2) for i in range(1, len(days) + 1)]
+        plt.plot(x, w)
+
     hour = int(time)
     hour_more = hour + 1
 
@@ -178,23 +185,58 @@ def calculate_hour_day(weekday, time, original_list):
     datum = ""
     temp_list = []
     days = []
+    datum_day = []
+    outliers = []
 
     for row in search_time(time, search_weekday(weekday, original_list)):
         if row[0] == datum:
             temp_list.append(float(row[23].replace(',', '.')))
         else:
-            if len(temp_list) > 0:
-                if math.ceil(sum(temp_list)) > (3 * statistics.mean(temp_list)):
-                    days.append(round(sum(temp_list), 2))
+            if len(temp_list) == 0:
                 temp_list = [(float(row[23].replace(',', '.')))]
-            datum = row[0]
+                datum = row[0]
+            else:
+                if len(days) < 4:
+
+                    datum_day.append(datum)
+                    days.append(round(sum(temp_list), 2))
+                    temp_list = [(float(row[23].replace(',', '.')))]
+                    datum = row[0]
+
+                else:
+
+                    if math.ceil(sum(temp_list)) < (30000 * statistics.mean(days)) and math.floor(sum(temp_list)) > (
+                            statistics.mean(days) / 30000):
+
+                        datum_day.append(datum)
+                        days.append(round(sum(temp_list), 2))
+
+                        temp_list = [(float(row[23].replace(',', '.')))]
+                        datum = row[0]
+
+                    else:
+                        outliers.append((round(sum(temp_list), 2), datum))
+                        temp_list = [(float(row[23].replace(',', '.')))]
+                        datum = row[0]
+
+    if len(temp_list) > 0:
+        if len(days) > 3:
+            if math.ceil(sum(temp_list)) < (30000 * statistics.mean(days)) and math.floor(sum(temp_list)) > (statistics.mean(days) / 30000):
+                datum_day.append(datum)
+                days.append(round(sum(temp_list), 2))
+            else:
+                outliers.append((round(sum(temp_list), 2), datum))
+
+        else:
+            datum_day.append(datum)
+            days.append(round(sum(temp_list), 2))
 
     counter = list(i for i in range(1, len(days) + 1))
-    print_graph3(days, counter, time, weekday)
+    print_graph3(days, counter, time, weekday, outliers, datum_day)
 
 
 # Print the graph of the brutto sold in an hour in a weekday
-def print_graph3(money, days, time, weekday):
+def print_graph3(money, days, time, weekday, outliers, datum_day):
     # x axis values
     x = days
     # corresponding y axis values
@@ -205,6 +247,14 @@ def print_graph3(money, days, time, weekday):
 
     # plotting the points
     plt.plot(x, y)
+
+    # plotting the median and mean value
+    if len(money) != 0:
+        z = [round(statistics.mean(money), 2) for i in range(1, len(days) + 1)]
+        plt.plot(x, z)
+
+        w = [round(statistics.median(money), 2) for i in range(1, len(days) + 1)]
+        plt.plot(x, w)
 
     # naming the x axis
     plt.xlabel('Days')
@@ -224,6 +274,13 @@ def print_graph3(money, days, time, weekday):
         print(f"Durchschnitt Value: {round(statistics.mean(money), 2)} €")
         print(f"Median Value: {round(statistics.median(sort(money)), 2)} €")
 
+    if len(outliers) > 0:
+        print(f"Outliers{outliers}")
+
+    if len(datum_day) != 0:
+        for i in range(0, len(datum_day)):
+            print(f"{datum_day[i]} - {money[i]}")
+
 
 # Calculate total brutto sold in a weekday
 def calculate_weekday(weekday, original_list):
@@ -231,29 +288,58 @@ def calculate_weekday(weekday, original_list):
     temp_list = []
     days = []
     outliers = []
+    datum_day = []
 
     for row in search_weekday(weekday, original_list):
         if row[0] == datum:
             temp_list.append(float(row[23].replace(',', '.')))
-        if row[0] != datum:
-            if len(temp_list) > 0:
-                if len(days) > 0:
-                    if math.ceil(sum(temp_list)) < (3 * statistics.mean(days)) and math.floor(sum(temp_list)) > (
-                            statistics.mean(days) / 3):
-                        days.append(round(sum(temp_list), 2))
-                    else:
-                        outliers.append((round(sum(temp_list), 2), row[0]))
-                else:
-                    days.append(round(sum(temp_list), 2))
+        else:
+            if len(temp_list) == 0:
                 temp_list = [(float(row[23].replace(',', '.')))]
-            datum = row[0]
+                datum = row[0]
+            else:
+                if len(days) == 0:
+
+                    datum_day.append(datum)
+                    days.append(round(sum(temp_list), 2))
+                    temp_list = [(float(row[23].replace(',', '.')))]
+                    datum = row[0]
+
+                else:
+
+                    if math.ceil(sum(temp_list)) < (3 * statistics.mean(days)) and math.floor(sum(temp_list)) > (
+                    statistics.mean(days) / 3):
+
+                        datum_day.append(datum)
+                        days.append(round(sum(temp_list), 2))
+
+                        temp_list = [(float(row[23].replace(',', '.')))]
+                        datum = row[0]
+
+                    else:
+                        outliers.append((round(sum(temp_list), 2), datum))
+                        temp_list = [(float(row[23].replace(',', '.')))]
+                        datum = row[0]
+
+    if len(temp_list) > 0:
+        if len(days) > 0:
+            if math.ceil(sum(temp_list)) < (3 * statistics.mean(days)) and math.floor(sum(temp_list)) > (
+                    statistics.mean(days) / 3):
+                datum_day.append(datum)
+                days.append(round(sum(temp_list), 2))
+            else:
+                outliers.append((round(sum(temp_list), 2), datum))
+
+        else:
+            datum_day.append(datum)
+            days.append(round(sum(temp_list), 2))
 
     counter = list(i for i in range(1, len(days) + 1))
-    print_graph4(days, counter, weekday, outliers)
+    print_graph4(days, counter, weekday, outliers, datum_day)
 
 
 # Print the graph of the brutto sold in a weekday
-def print_graph4(money, days, weekday, outliers):
+def print_graph4(money, days, weekday, outliers, datum_day):
     # x axis values
     x = days
     # corresponding y axis values
@@ -280,7 +366,7 @@ def print_graph4(money, days, weekday, outliers):
     print("\n")
     print("-----------------------------------------------------")
     print("\n")
-    print('Brutto Umsatz am ' + weekday)
+    print('Brutto Umsatz at ' + weekday)
     # function to show the plot
     plt.show()
 
@@ -290,6 +376,10 @@ def print_graph4(money, days, weekday, outliers):
 
     if len(outliers) > 0:
         print(f"Outliers{outliers}")
+
+    if len(datum_day) != 0:
+        for i in range(0, len(datum_day)):
+            print(f"{datum_day[i]} - {money[i]}")
 
 
 # Check one hour in one day to see why on this time there is outliers
