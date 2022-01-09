@@ -91,6 +91,7 @@ def search_rows(list_element, string, search_type) -> list:
 
     weather = get_weather_data(list_element.first_day, list_element.last_day)
     shoppingcart = check_shopping_cart(list_element.csvlist)
+    deckungs = deckungs_beitrag(list_element.csvlist)
 
     if search_type == "weekday":
         for row in search_weekday(string, list_element.csvlist):
@@ -107,7 +108,7 @@ def search_rows(list_element, string, search_type) -> list:
                     day, month, year = datum.split('.')
                     day_name = str('20' + year + '.' + month + '.' + day)
 
-                    days.append((round(sum(temp_list), 2), datum, weather[day_name], shoppingcart[day_name]))
+                    days.append((round(sum(temp_list), 2), datum, weather[day_name], shoppingcart[day_name], deckungs[day_name]))
 
                     temp_list = [(float(row[23].replace(',', '.')))]
                     datum = row[0]
@@ -116,7 +117,7 @@ def search_rows(list_element, string, search_type) -> list:
             day, month, year = datum.split('.')
             day_name = str('20' + year + '.' + month + '.' + day)
 
-            days.append((round(sum(temp_list), 2), datum, weather[day_name], shoppingcart[day_name]))
+            days.append((round(sum(temp_list), 2), datum, weather[day_name], shoppingcart[day_name], deckungs[day_name]))
 
     elif search_type == "time":
         for row in search_time(string, list_element.csvlist):
@@ -133,7 +134,7 @@ def search_rows(list_element, string, search_type) -> list:
                     day, month, year = datum.split('.')
                     day_name = str('20' + year + '.' + month + '.' + day)
 
-                    days.append((round(sum(temp_list), 2), datum, weather[day_name], shoppingcart[day_name]))
+                    days.append((round(sum(temp_list), 2), datum, weather[day_name], shoppingcart[day_name], deckungs[day_name]))
 
                     temp_list = [(float(row[23].replace(',', '.')))]
                     datum = row[0]
@@ -142,13 +143,13 @@ def search_rows(list_element, string, search_type) -> list:
             day, month, year = datum.split('.')
             day_name = str('20' + year + '.' + month + '.' + day)
 
-            days.append((round(sum(temp_list), 2), datum, weather[day_name], shoppingcart[day_name]))
+            days.append((round(sum(temp_list), 2), datum, weather[day_name], shoppingcart[day_name], deckungs[day_name]))
 
     return days
 
 
 # Print the graph with weekday stats
-def print_graph_weekday(money, outliers, mean, median, title, mean_day, median_day, detail, weather, customers):
+def print_graph_weekday(money, outliers, mean, median, title, mean_day, median_day, detail, weather, shopping_cart):
     days = list(i for i in range(1, len(money) + 1))
 
     # x axis values: Days
@@ -159,10 +160,10 @@ def print_graph_weekday(money, outliers, mean, median, title, mean_day, median_d
     u = [day[2][1] for day in money]
     # corresponding y axis (alternative) values: Average Temperature in °C
     v = [day[2][0] for day in money]
-    # corresponding y axis (alternative) values: Average Temperature in °C
-    t = [day[3] for day in money]
-
-    r = [day[1] for day in money]
+    # corresponding y axis (alternative) values: % Deckungs Beitrag
+    t = [round((day[4][1] / day[0]) * 100, 2) for day in money]
+    # corresponding y axis (alternative) values: Average Deckungs in €
+    r = [day[4][1] for day in money]
 
     plt.rcParams["figure.figsize"] = (10, 10)
 
@@ -217,20 +218,21 @@ def print_graph_weekday(money, outliers, mean, median, title, mean_day, median_d
 
         plt.show()
 
-    if customers is True:
+    if shopping_cart is True:
         print("\n")
-        print("Money and customers comparison")
+        print("Deckungs Beitrag")
         print("\n")
 
         fig, ax1 = plt.subplots()
 
         ax2 = ax1.twinx()
-        ax1.plot(x, y, 'g-')
-        ax2.plot(x, t, 'b-')
+        ax1.plot(x, r, 'b-')
+        ax2.plot(x, t, 'r-')
+        
 
         ax1.set_xlabel('Days')
-        ax1.set_ylabel('Money(€)', color='g')
-        ax2.set_ylabel('Number of customers', color='b')
+        ax1.set_ylabel('Deckungs Beitrag (€)', color='b')
+        ax2.set_ylabel('Deckungs Beitrag (%)', color='r')
 
         plt.show()
 
@@ -240,12 +242,18 @@ def print_graph_weekday(money, outliers, mean, median, title, mean_day, median_d
         print("Detail: ")
         print("\n")
 
-        data = {'Day': [str(day[1]) for day in money], 'Brutto Umsatz': [(str(day[0]) + ' €') for day in money] , 'Rain': [str(day[2][1]) for day in money], 'Temperature': [(str(day[2][0]) + ' °') for day in money], 'Average Korb': [(str(day[3][0]) + ' €') for day in money], 'Anzahl Korb': [str(day[3][1]) for day in money]}
+        data = {'Day': [str(day[1]) for day in money], 'Brutto Umsatz': [(str(day[0]) + ' €') for day in money],
+                'Rain': [str(day[2][1]) for day in money], 'Temperature': [(str(day[2][0]) + ' °') for day in money],
+                'Average Korb': [(str(day[3][0]) + ' €') for day in money],
+                'Anzahl Korb': [str(day[3][1]) for day in money], 'Deckungs': [(str(day[4][1]) + ' €')for day in money], 'Avrg Deck pro Korb': [(str(day[4][0]) + ' €')for day in money], '% Deckungs': [(str(round((day[4][1] / day[0]) * 100, 2)) + ' %') for day in money]}
 
-        df = pd.DataFrame (data)
+        df = pd.DataFrame(data)
 
         if len(days) != 0:
             print(df)
+
+            print(df.shape)
+            print(df.info())
 
         if len(outliers) > 0:
             print("\n")
@@ -402,5 +410,63 @@ def check_shopping_cart(csvlist) -> dict:
             day_name = str('20' + year + '.' + month + '.' + day)
             shop_list.append(round(sum(temp_list), 2))
             bills[day_name] = (round(statistics.mean(shop_list), 2), len(shop_list))
+
+    return bills
+
+def deckungs_beitrag(csvlist) -> dict:
+    datum = "00.00.00"
+    bills = {}
+    temp_list = []
+    shop_list = []
+    bill_nr = ''
+
+    for row in csvlist:
+        if row[0] != 'Datum':
+            if row[0] == datum:
+                if row[2] == bill_nr:
+                    if (float(row[22].replace(',', '.')) > 0):
+                        temp_list.append((float(row[22].replace(',', '.')) - (float(row[3].replace(',', '.')) * float(row[9].replace(',', '.')))))
+                else:
+                    if sum(temp_list) > 0:
+                        shop_list.append(round(sum(temp_list), 2))
+
+                    if (float(row[22].replace(',', '.')) > 0):
+                        temp_list = [(float(row[22].replace(',', '.')) - (float(row[3].replace(',', '.')) * float(row[9].replace(',', '.'))))]
+                    else:
+                        temp_list = [0]
+                    bill_nr = row[2]
+
+            else:
+                if len(temp_list) == 0:
+                    if (float(row[22].replace(',', '.')) > 0):
+                        temp_list = [(float(row[22].replace(',', '.')) - (float(row[3].replace(',', '.')) * float(row[9].replace(',', '.'))))]
+                    else:
+                        temp_list = [0]    
+                    datum = row[0]
+                    bill_nr = row[2]
+                else:
+
+                    if sum(temp_list) > 0:
+                        shop_list.append(round(sum(temp_list), 2))
+
+                    day, month, year = datum.split('.')
+                    day_name = str('20' + year + '.' + month + '.' + day)
+                    bills[day_name] = (round(statistics.mean(shop_list), 2), round(sum(shop_list), 2))
+
+                    shop_list = []
+                    if (float(row[22].replace(',', '.')) > 0):
+                        temp_list = [(float(row[22].replace(',', '.')) - (float(row[3].replace(',', '.')) * float(row[9].replace(',', '.'))))]
+                    else:
+                        temp_list = [0]    
+                    datum = row[0]
+                    bill_nr = row[2]
+
+
+    if len(temp_list) > 0:
+        if sum(temp_list) > 0:
+            day, month, year = datum.split('.')
+            day_name = str('20' + year + '.' + month + '.' + day)
+            shop_list.append(round(sum(temp_list), 2))
+            bills[day_name] = (round(statistics.mean(shop_list), 2), round(sum(shop_list), 2))
 
     return bills

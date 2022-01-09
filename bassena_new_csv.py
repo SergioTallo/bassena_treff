@@ -33,15 +33,15 @@ def calculate_row(kostenstelle):
         if matchobject:
             try:
                 if row[16] == '0':
-                    artikel_0.append(float(row[22].replace(',', '.')))
+                    artikel_0.append(float(row[23].replace(',', '.')))
                 elif row[16] == '5':
-                    artikel_5.append(float(row[22].replace(',', '.')))
+                    artikel_5.append(float(row[23].replace(',', '.')))
                 elif row[16] == '10':
-                    artikel_10.append(float(row[22].replace(',', '.')))
+                    artikel_10.append(float(row[23].replace(',', '.')))
                 elif row[16] == '13':
-                    artikel_13.append(float(row[22].replace(',', '.')))
+                    artikel_13.append(float(row[23].replace(',', '.')))
                 elif row[16] == '20':
-                    artikel_20.append(float(row[22].replace(',', '.')))
+                    artikel_20.append(float(row[23].replace(',', '.')))
 
                 cost.append(float(row[3].replace(',', '.')) * float(row[9].replace(',', '.')))
 
@@ -61,20 +61,32 @@ def calculate_row(kostenstelle):
     artikel_13_strg = str(round(sum(artikel_13), 2))
     artikel_20_strg = str(round(sum(artikel_20), 2))
     total_cost_str = str(total_cost)
-    deckung_str = str(deckung)
+
+    '''deckung_str = str(deckung)
     prozent_str = str(prozent)
 
-    artikel = [kostenstelle, total_str.replace('.', ','), artikel_0_strg.replace('.', ','),
+    artikel = [kostenstelle_dict[kostenstelle], total_str.replace('.', ','), artikel_0_strg.replace('.', ','),
                artikel_5_strg.replace('.', ','), artikel_10_strg.replace('.', ','), artikel_13_strg.replace('.', ','),
                artikel_20_strg.replace('.', ','), total_cost_str.replace('.', ','), deckung_str.replace('.', ','),
-               prozent_str.replace('.', ',')]
+               prozent_str.replace('.', ',')]'''
+
+    artikel = [kostenstelle_dict[kostenstelle], total_str.replace('.', ','), artikel_0_strg.replace('.', ','),
+               artikel_5_strg.replace('.', ','), artikel_10_strg.replace('.', ','), artikel_13_strg.replace('.', ','),
+               artikel_20_strg.replace('.', ','), total_cost_str.replace('.', ',')]
 
     final_table.append(artikel)
 
 
+kostenstelle_dict = {'4002': '4002 Erlöse Paketshop', '4300': '4300 Lebensmittel 10%', '4301': '4301 Handelswaren 20%',
+                     '4302': '4302 Tiemahrung 13%', '4303': '4303 Alkoholfreie Getränke 20%',
+                     '4304': '4304 Alkoholische Getränke 20%', '4305': '4305 Heißgetränke 20%',
+                     '4307': '4307 Tabakwaren 20%', '4308': '4308 Lebensmittel 20%', '4309': '4309 FFP2 Masken 0%',
+                     '4310': '4310 Haldelswaren 10%', '4400': '4400 Kuche'}
+
 bassenaoriginal = read_original_csv(sys.argv[1])
 
-final_table = [['Kontenstelle', 'total', '0%', '5%', '10%', '13%', '20%', 'EKges', 'Deckungsbeitrag', '%']]
+#final_table = [['Kontenstelle', 'total', '0%', '5%', '10%', '13%', '20%', 'EKges', 'Deckungsbeitrag', '%']]
+final_table = [['Kontenstelle', 'total', '0%', '5%', '10%', '13%', '20%', 'EKges']]
 
 calculate_row('4002')
 calculate_row('4300')
